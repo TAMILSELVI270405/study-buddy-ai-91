@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Upload, FileText, CheckCircle, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,14 +20,22 @@ export default function UploadPage() {
   ]);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleUpload = () => {
-    const newFile: UploadedFile = {
-      name: `${selectedSubject}_Notes_${files.length + 1}.pdf`,
-      subject: selectedSubject,
-      size: "1.2 MB",
-    };
-    setFiles((prev) => [...prev, newFile]);
-    toast.success("File uploaded successfully!");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    Array.from(fileList).forEach((file) => {
+      if (file.type !== "application/pdf") {
+        toast.error(`"${file.name}" is not a PDF file.`);
+        return;
+      }
+      const size = file.size < 1024 * 1024
+        ? `${(file.size / 1024).toFixed(1)} KB`
+        : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+      setFiles((prev) => [...prev, { name: file.name, subject: selectedSubject, size }]);
+      toast.success(`"${file.name}" uploaded successfully!`);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeFile = (index: number) => {
@@ -70,14 +78,22 @@ export default function UploadPage() {
           <CardTitle className="font-display text-lg">Upload PDF</CardTitle>
         </CardHeader>
         <CardContent>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            multiple
+            className="hidden"
+            onChange={(e) => handleFileSelect(e.target.files)}
+          />
           <div
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleUpload(); }}
+            onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileSelect(e.dataTransfer.files); }}
             className={`border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer ${
               isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
             }`}
-            onClick={handleUpload}
+            onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
             <p className="font-medium text-card-foreground">Drop your PDF here or click to browse</p>
@@ -85,7 +101,7 @@ export default function UploadPage() {
           </div>
 
           <button
-            onClick={handleUpload}
+            onClick={() => fileInputRef.current?.click()}
             className="mt-4 w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
           >
             Upload to {selectedSubject}
