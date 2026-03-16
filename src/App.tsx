@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import HomePage from "@/pages/HomePage";
 import UploadPage from "@/pages/UploadPage";
-import AskPage from "@/pages/AskPage";
+import ChatPage from "@/pages/ChatPage";
 import InfoPage from "@/pages/InfoPage";
 import NotFound from "@/pages/NotFound";
 
@@ -22,7 +22,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/upload" element={<UploadPage />} />
-            <Route path="/ask" element={<AskPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/ask" element={<ChatPage />} />
+            <Route path="/about" element={<InfoPage />} />
             <Route path="/info" element={<InfoPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
